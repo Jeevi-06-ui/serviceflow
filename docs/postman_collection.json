@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "ServiceFlow REST API Collection",
+    "description": "Postman Collection for ServiceFlow Smart Warranty & After-Sales Service Management System (Jeevix Technologies)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Demo Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"customer\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/demo-login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "demo-login"]
+        }
+      }
+    },
+    {
+      "name": "Customers - List All",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/customers",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "customers"]
+        }
+      }
+    },
+    {
+      "name": "Products - Register Appliance",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"cust-1\",\n  \"category\": \"Television\",\n  \"brand\": \"Sony\",\n  \"modelName\": \"Sony Bravia 55 OLED\",\n  \"serialNumber\": \"SN-SNY-OLED-99120\",\n  \"purchaseDate\": \"2025-06-15\",\n  \"seller\": \"Sony Center Indiranagar\",\n  \"invoiceNumber\": \"INV-SNY-2025-8812\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "products"]
+        }
+      }
+    },
+    {
+      "name": "Warranties - Evaluate Validity",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/warranties/war-1/validate?targetDate=2026-11-24",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "warranties", "war-1", "validate"],
+          "query": [{ "key": "targetDate", "value": "2026-11-24" }]
+        }
+      }
+    },
+    {
+      "name": "Requests - Create Ticket",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"cust-1\",\n  \"productId\": \"prod-1\",\n  \"issueCategory\": \"Display / Screen\",\n  \"severity\": \"High\",\n  \"description\": \"Intermittent flashing lines on HDMI input\",\n  \"preferredDate\": \"2026-11-26\",\n  \"preferredTimeSlot\": \"10:00 AM - 01:00 PM\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/requests",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests"]
+        }
+      }
+    },
+    {
+      "name": "Requests - Update Status",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"In Progress\",\n  \"notes\": \"Technician initiated circuit diagnostics\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/requests/req-1/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests", "req-1", "status"]
+        }
+      }
+    },
+    {
+      "name": "Requests - Assign Technician",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicianId\": \"tech-1\",\n  \"centerId\": \"center-blr-1\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/requests/req-1/assign",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests", "req-1", "assign"]
+        }
+      }
+    },
+    {
+      "name": "Appointments - Schedule Dispatch",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"serviceRequestId\": \"req-1\",\n  \"scheduledDate\": \"2026-11-26\",\n  \"timeSlot\": \"10:00 AM - 12:00 PM\",\n  \"notes\": \"Call customer prior to arrival\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/appointments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "appointments"]
+        }
+      }
+    },
+    {
+      "name": "Estimates - Create Quote",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"serviceRequestId\": \"req-2\",\n  \"lines\": [\n    { \"description\": \"PCB Board Replacement\", \"type\": \"Part\", \"quantity\": 1, \"unitPriceInr\": 3200, \"amountInr\": 3200 },\n    { \"description\": \"Refrigerant Gas Charge\", \"type\": \"Part\", \"quantity\": 1, \"unitPriceInr\": 1200, \"amountInr\": 1200 },\n    { \"description\": \"Labor & Inspection\", \"type\": \"Labor\", \"quantity\": 1, \"unitPriceInr\": 1100, \"amountInr\": 1100 }\n  ],\n  \"notes\": \"Power surge damage\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/estimates",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "estimates"]
+        }
+      }
+    },
+    {
+      "name": "Estimates - Record Customer Decision",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"Approved\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/estimates/est-1/decision",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "estimates", "est-1", "decision"]
+        }
+      }
+    },
+    {
+      "name": "Feedback - Submit Rating",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"serviceRequestId\": \"req-3\",\n  \"rating\": 5,\n  \"resolutionSatisfaction\": 5,\n  \"timelyArrivalSatisfaction\": 5,\n  \"comment\": \"Excellent repair workmanship and punctual technician.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/feedback",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "feedback"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
