@@ -14,6 +14,8 @@ interface AuthContextType {
   switchUser: (userId: string) => void;
   resetAllDemoData: () => void;
   isAuthenticated: boolean;
+  logout: () => void;
+  login: (email: string, role?: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(() => Repository.auth.getCurrentUser());
   const [demoUsers, setDemoUsers] = useState<User[]>(() => Repository.auth.getAllDemoUsers());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const switchRole = (role: UserRole) => {
     const updatedUser = Repository.auth.demoLogin(role);
     setUser(updatedUser);
+    setIsAuthenticated(true);
 
     // Route to the role's primary dashboard
     switch (role) {
@@ -62,12 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const switchUser = (userId: string) => {
     const updatedUser = Repository.auth.setCurrentUser(userId);
     setUser(updatedUser);
+    setIsAuthenticated(true);
+  };
+
+  const login = (email: string, role?: UserRole) => {
+    const loggedUser = Repository.auth.login(email, role);
+    setUser(loggedUser);
+    setIsAuthenticated(true);
+    router.push(`/${loggedUser.role}/dashboard`);
+  };
+
+  const logout = () => {
+    Repository.auth.logout();
+    setIsAuthenticated(false);
+    router.push('/login?logout=1');
   };
 
   const resetAllDemoData = () => {
     performReset();
     const currentUser = Repository.auth.getCurrentUser();
     setUser(currentUser);
+    setIsAuthenticated(true);
     router.refresh();
   };
 
@@ -80,7 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         switchRole,
         switchUser,
         resetAllDemoData,
-        isAuthenticated: true,
+        isAuthenticated,
+        logout,
+        login,
       }}
     >
       {children}

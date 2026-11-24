@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types';
 import { Repository } from '@/lib/api/repository';
 import { VoiceTourLauncherModal } from './VoiceTourLauncherModal';
+import { GlobalSearchModal } from './GlobalSearchModal';
+import { HelpModal } from './HelpModal';
+import { ProfileSettingsModal } from './ProfileSettingsModal';
 import { useVoiceTour } from '@/context/VoiceTourContext';
 import {
   Bell,
@@ -18,7 +21,10 @@ import {
   CheckCircle,
   ExternalLink,
   Headphones,
-  Sparkles,
+  Search,
+  HelpCircle,
+  Settings,
+  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,13 +34,30 @@ interface HeaderProps {
 }
 
 export function Header({ title, breadcrumbs }: HeaderProps) {
-  const { user, role, switchRole, resetAllDemoData } = useAuth();
+  const { user, role, switchRole, resetAllDemoData, logout } = useAuth();
   const { isTourActive } = useVoiceTour();
 
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Global Cmd+K keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSearchModal((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Notifications for current role
   const notifications = Repository.notifications.getAll(role, user.customerId || user.centerId || user.technicianId);
@@ -72,12 +95,25 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
         {title && <h1 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h1>}
       </div>
 
-      {/* Right: Actions, Voice Tour, Role Switcher, Notifications, User */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* Right: Omnisearch, Voice Tour, Help, Role Switcher, Notifications, User Dropdown */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Omnisearch Button (Cmd+K) */}
+        <button
+          onClick={() => setShowSearchModal(true)}
+          className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors shadow-2xs"
+          title="Search tickets, serials, appliances (Cmd+K)"
+        >
+          <Search className="w-3.5 h-3.5 text-slate-400" />
+          <span className="hidden md:inline">Quick Search...</span>
+          <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-white rounded border border-slate-200">
+            ⌘K
+          </kbd>
+        </button>
+
         {/* Voice Guided Tour Trigger Pill */}
         <button
           onClick={() => setShowVoiceModal(true)}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+          className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
             isTourActive
               ? 'bg-teal-600 text-white ring-2 ring-teal-400 animate-pulse'
               : 'bg-slate-900 text-teal-300 hover:bg-slate-800 border border-slate-800'
@@ -88,21 +124,31 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
           <span className="hidden sm:inline">Voice Guide</span>
         </button>
 
+        {/* Help Center Trigger */}
+        <button
+          onClick={() => setShowHelpModal(true)}
+          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+          title="Help Center, FAQs & SLA Matrix"
+          aria-label="Help Center"
+        >
+          <HelpCircle className="w-4 h-4 text-slate-500" />
+        </button>
+
         {/* Reset Demo Data Button */}
         <button
           onClick={() => setShowResetConfirm(true)}
-          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+          className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
           title="Reset database to clean deterministic seed data"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Reset Demo Data</span>
+          <span>Reset Seeds</span>
         </button>
 
         {/* Quick Role Switcher Pill */}
         <div className="relative">
           <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${currentRoleMeta.color}`}
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${currentRoleMeta.color}`}
           >
             <currentRoleMeta.icon className="w-3.5 h-3.5" />
             <span className="hidden md:inline">{currentRoleMeta.label}</span>
@@ -110,7 +156,7 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
           </button>
 
           {showRoleMenu && (
-            <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-2 shadow-lg z-50 animate-in fade-in">
               <div className="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                 Switch Demo Perspective
               </div>
@@ -194,17 +240,107 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
           )}
         </div>
 
-        {/* User Avatar & Name */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-            {user.name.slice(0, 2).toUpperCase()}
-          </div>
-          <div className="hidden lg:flex flex-col text-left leading-tight">
-            <span className="text-xs font-semibold text-slate-900">{user.name}</span>
-            <span className="text-[10px] text-slate-500 capitalize">{role}</span>
-          </div>
+        {/* User Avatar & Dropdown Menu */}
+        <div className="relative pl-1 sm:pl-2 border-l border-slate-200">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors focus:outline-none"
+            aria-label="User account menu"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-teal-300 flex items-center justify-center font-bold text-xs ring-1 ring-slate-800">
+              {user.name.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="hidden lg:flex flex-col text-left leading-tight">
+              <span className="text-xs font-semibold text-slate-900 truncate max-w-[110px]">{user.name}</span>
+              <span className="text-[10px] text-slate-500 capitalize">{role}</span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden lg:inline" />
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+              {/* User preview header */}
+              <div className="p-3 bg-slate-50 rounded-xl mb-1 border border-slate-100">
+                <div className="text-xs font-bold text-slate-900">{user.name}</div>
+                <div className="text-[11px] text-slate-500 truncate">{user.email}</div>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${currentRoleMeta.color}`}>
+                    {currentRoleMeta.label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action items */}
+              <div className="space-y-0.5">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    setShowProfileModal(true);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left"
+                >
+                  <UserIcon className="w-4 h-4 text-slate-400" />
+                  <span>My Profile & Preferences</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    setShowHelpModal(true);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left"
+                >
+                  <HelpCircle className="w-4 h-4 text-slate-400" />
+                  <span>Help Center & FAQs</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    setShowSearchModal(true);
+                  }}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left"
+                >
+                  <Search className="w-4 h-4 text-slate-400" />
+                  <span>Quick Search (Cmd+K)</span>
+                </button>
+              </div>
+
+              <div className="my-1.5 border-t border-slate-100" />
+
+              {/* Sign Out Action */}
+              <button
+                onClick={() => {
+                  setShowUserMenu(false);
+                  setShowLogoutConfirm(true);
+                }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left"
+              >
+                <LogOut className="w-4 h-4 text-red-500" />
+                <span>Sign Out / Log Out</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Omnisearch Modal */}
+      <GlobalSearchModal
+        isOpen={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+      />
+
+      {/* Help & Support Center Modal */}
+      <HelpModal
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+      />
+
+      {/* Profile & Settings Modal */}
+      <ProfileSettingsModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
 
       {/* Voice Tour Launcher Modal */}
       <VoiceTourLauncherModal
@@ -239,6 +375,38 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
                 className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
               >
                 Yes, Reset All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Logout Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 text-red-600 mb-3">
+              <LogOut className="w-6 h-6" />
+              <h3 className="text-base font-bold text-slate-900">Sign Out of ServiceFlow?</h3>
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed mb-5">
+              You will be logged out of your current session as <strong>{user.name}</strong> ({role}). You can log back in at any time or choose another demo perspective.
+            </p>
+            <div className="flex justify-end gap-2.5">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Sign Out Now
               </button>
             </div>
           </div>

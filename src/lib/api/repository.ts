@@ -14,8 +14,10 @@ import {
   Notification,
   Feedback,
   Complaint,
+  WarrantyClaim,
   SystemMetrics,
   TicketStatus,
+  IssueCategory,
 } from '@/types';
 import { getStore, saveStorage, initializeStorage } from '../mock/storage';
 import { isValidTransition, isRoleAllowedTransition } from '../workflow/transition-rules';
@@ -53,6 +55,26 @@ export const Repository = {
       store.activeUserId = targetUser.id;
       saveStorage(store);
       return targetUser;
+    },
+
+    login(email: string, role?: UserRole): User {
+      const store = getStore();
+      let user = store.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+      if (!user && role) {
+        user = store.users.find((u) => u.role === role);
+      }
+      if (!user) {
+        user = store.users[3]; // Fallback to Priya Sharma
+      }
+      store.activeUserId = user.id;
+      saveStorage(store);
+      return user;
+    },
+
+    logout(): void {
+      const store = getStore();
+      store.activeUserId = '';
+      saveStorage(store);
     },
 
     getAllDemoUsers(): User[] {
@@ -956,6 +978,227 @@ export const Repository = {
       complaint.resolvedAt = new Date().toISOString();
       saveStorage(store);
       return complaint;
+    },
+  },
+
+  // ==========================================
+  // CLAIMS
+  // ==========================================
+  claims: {
+    getAll(customerId?: string): WarrantyClaim[] {
+      const store = getStore();
+      if (customerId) return store.claims.filter((c) => c.customerId === customerId);
+      return store.claims;
+    },
+
+    create(data: {
+      warrantyId: string;
+      customerId: string;
+      issueCategory: string;
+      issueDescription: string;
+      amountClaimedInr?: number;
+      actor: { id: string; name: string };
+    }): { claim: WarrantyClaim; request: ServiceRequest } {
+      const store = getStore();
+      const warranty = store.warranties.find((w) => w.id === data.warrantyId);
+      if (!warranty) throw new Error('Warranty policy not found');
+
+      const product = store.products.find((p) => p.id === warranty.productId);
+      if (!product) throw new Error('Product not found for this warranty');
+
+      // 1. Create linked service request
+      const ticketNum = `SR-2026-${String(store.requests.length + 101).padStart(4, '0')}`;
+      const newRequest: ServiceRequest = {
+        id: `sr-${Date.now()}`,
+        ticketNumber: ticketNum,
+        customerId: data.customerId,
+        customerName: data.actor.name,
+        customerPhone: '+91 98450 12345',
+        productId: product.id,
+        productName: `${product.brand} ${product.modelName}`,
+        productCategory: product.category,
+        serialNumber: product.serialNumber,
+        warrantyId: warranty.id,
+        warrantyStatus: warranty.status,
+        issueCategory: (data.issueCategory as IssueCategory) || 'Power Failure',
+        description: `[Warranty Claim] ${data.issueDescription}`,
+        severity: 'High',
+        status: 'Submitted',
+        preferredDate: new Date().toISOString().split('T')[0],
+        preferredTimeSlot: '10:00 AM - 01:00 PM',
+        requiresEstimate: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hasFeedback: false,
+      };
+
+      store.requests.unshift(newRequest);
+
+      // 2. Create warranty claim record
+      const newClaim: WarrantyClaim = {
+        id: `clm-${Date.now()}`,
+        warrantyId: warranty.id,
+        serviceRequestId: newRequest.id,
+        customerId: data.customerId,
+        claimDate: new Date().toISOString(),
+        amountClaimedInr: data.amountClaimedInr || warranty.claimLimitInr,
+        status: 'Pending',
+        reason: `${data.issueCategory}: ${data.issueDescription}`,
+      };
+
+      store.claims.unshift(newClaim);
+
+      // 3. Service Event audit entry
+      store.events.unshift({
+        id: `evt-${Date.now()}`,
+        serviceRequestId: newRequest.id,
+        timestamp: new Date().toISOString(),
+        actorId: data.actor.id,
+        actorName: data.actor.name,
+        actorRole: 'customer',
+        toStatus: 'Submitted',
+        action: 'Warranty Claim Filed',
+        notes: `Customer filed warranty claim for ${warranty.policyNumber} (Limit: ₹${warranty.claimLimitInr.toLocaleString('en-IN')}). Claim Ref: ${newClaim.id}.`,
+      });
+
+      // 4. Notification
+      store.notifications.unshift({
+        id: `notif-${Date.now()}`,
+        recipientRole: 'customer',
+        recipientId: data.customerId,
+        title: `Claim Filed: ${newClaim.id}`,
+        message: `Your warranty claim for ${product.modelName} has been submitted under Ticket ${newRequest.ticketNumber}.`,
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        link: `/customer/requests/${newRequest.id}`,
+        type: 'success',
+      });
+
+      saveStorage(store);
+      return { claim: newClaim, request: newRequest };
+    },
+  },
+
+  // ==========================================
+  // OMNISEARCH
+  // ==========================================
+  search: {
+    omniSearch(query: string): Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      category: 'ticket' | 'product' | 'warranty' | 'customer' | 'technician';
+      badge: string;
+      link: string;
+    }> {
+      const q = query.trim().toLowerCase();
+      if (!q) return [];
+
+      const store = getStore();
+      const results: Array<{
+        id: string;
+        title: string;
+        subtitle: string;
+        category: 'ticket' | 'product' | 'warranty' | 'customer' | 'technician';
+        badge: string;
+        link: string;
+      }> = [];
+
+      // 1. Tickets
+      for (const req of store.requests) {
+        if (
+          req.ticketNumber.toLowerCase().includes(q) ||
+          (req.productName || '').toLowerCase().includes(q) ||
+          (req.customerName && req.customerName.toLowerCase().includes(q)) ||
+          req.description.toLowerCase().includes(q) ||
+          req.issueCategory.toLowerCase().includes(q) ||
+          (req.serialNumber || '').toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: req.id,
+            title: `${req.ticketNumber} — ${req.productName}`,
+            subtitle: `${req.customerName || 'Customer'} • ${req.issueCategory}: ${req.description.slice(0, 50)}...`,
+            category: 'ticket',
+            badge: req.status,
+            link: `/customer/requests/${req.id}`,
+          });
+        }
+      }
+
+      // 2. Products
+      for (const prod of store.products) {
+        if (
+          prod.serialNumber.toLowerCase().includes(q) ||
+          prod.modelName.toLowerCase().includes(q) ||
+          prod.brand.toLowerCase().includes(q) ||
+          prod.seller.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: prod.id,
+            title: `${prod.brand} ${prod.modelName}`,
+            subtitle: `SN: ${prod.serialNumber} • Purchased: ${prod.purchaseDate}`,
+            category: 'product',
+            badge: prod.category,
+            link: `/customer/products`,
+          });
+        }
+      }
+
+      // 3. Warranties
+      for (const war of store.warranties) {
+        if (
+          war.policyNumber.toLowerCase().includes(q) ||
+          war.coverageType.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: war.id,
+            title: `Policy ${war.policyNumber}`,
+            subtitle: `Coverage: ${war.coverageType} • Valid till ${war.endDate}`,
+            category: 'warranty',
+            badge: war.status,
+            link: `/customer/warranties`,
+          });
+        }
+      }
+
+      // 4. Customers
+      for (const cust of store.customers) {
+        if (
+          cust.name.toLowerCase().includes(q) ||
+          cust.email.toLowerCase().includes(q) ||
+          cust.phone.toLowerCase().includes(q) ||
+          cust.address.city.toLowerCase().includes(q)
+        ) {
+          results.push({
+            id: cust.id,
+            title: cust.name,
+            subtitle: `${cust.phone} • ${cust.address.city}, ${cust.address.state}`,
+            category: 'customer',
+            badge: cust.address.city,
+            link: `/center/customers`,
+          });
+        }
+      }
+
+      // 5. Technicians
+      for (const tech of store.technicians) {
+        if (
+          tech.name.toLowerCase().includes(q) ||
+          tech.phone.toLowerCase().includes(q) ||
+          tech.skills.some((s) => s.toLowerCase().includes(q))
+        ) {
+          results.push({
+            id: tech.id,
+            title: tech.name,
+            subtitle: `Hub: ${tech.centerName || tech.centerId} • Rating: ${tech.rating}★ (${tech.completedTasksCount} jobs)`,
+            category: 'technician',
+            badge: `${tech.rating}★`,
+            link: `/center/technicians`,
+          });
+        }
+      }
+
+      return results.slice(0, 15);
     },
   },
 

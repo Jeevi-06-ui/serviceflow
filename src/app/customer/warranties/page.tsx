@@ -7,9 +7,10 @@ import { Repository } from '@/lib/api/repository';
 import { Warranty, Product } from '@/types';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { WarrantyCardModal } from '@/components/shared/WarrantyCardModal';
+import { WarrantyClaimModal } from '@/components/shared/WarrantyClaimModal';
 import { formatIndianDate, formatINR } from '@/lib/utils/dates';
 import { calculateWarrantyStatus } from '@/lib/utils/warranty';
-import { ShieldCheck, Calendar, CheckCircle2, AlertTriangle, Printer } from 'lucide-react';
+import { ShieldCheck, Calendar, CheckCircle2, AlertTriangle, Printer, ShieldAlert } from 'lucide-react';
 
 export default function CustomerWarrantiesPage() {
   const { user } = useAuth();
@@ -19,6 +20,10 @@ export default function CustomerWarrantiesPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedWarranty, setSelectedWarranty] = useState<Warranty | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Warranty Claim Modal state
+  const [claimWarranty, setClaimWarranty] = useState<Warranty | null>(null);
+  const [claimProduct, setClaimProduct] = useState<Product | null>(null);
 
   // Interactive Date Evaluator
   const [evaluationDate, setEvaluationDate] = useState('2026-11-24');
@@ -132,13 +137,27 @@ export default function CustomerWarrantiesPage() {
               </div>
 
               {/* Card Actions */}
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  onClick={() => handleOpenCertificate(war)}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" /> Digital Certificate
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenCertificate(war)}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" /> Certificate
+                  </button>
+
+                  {calc.status === 'Active' && prod && (
+                    <button
+                      onClick={() => {
+                        setClaimWarranty(war);
+                        setClaimProduct(prod);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-600" /> File Claim
+                    </button>
+                  )}
+                </div>
 
                 {prod && (
                   <Link
@@ -162,6 +181,21 @@ export default function CustomerWarrantiesPage() {
           onClose={() => {
             setSelectedWarranty(null);
             setSelectedProduct(null);
+          }}
+        />
+      )}
+
+      {claimWarranty && claimProduct && (
+        <WarrantyClaimModal
+          warranty={claimWarranty}
+          product={claimProduct}
+          isOpen={true}
+          onClose={() => {
+            setClaimWarranty(null);
+            setClaimProduct(null);
+          }}
+          onSuccess={() => {
+            setWarranties(Repository.warranties.getAll(customerId));
           }}
         />
       )}

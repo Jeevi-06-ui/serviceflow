@@ -13,6 +13,7 @@ import {
   Notification,
   Feedback,
   Complaint,
+  WarrantyClaim,
 } from '@/types';
 
 import {
@@ -50,6 +51,7 @@ export interface StorageDataStore {
   notifications: Notification[];
   feedback: Feedback[];
   complaints: Complaint[];
+  claims: WarrantyClaim[];
   activeUserId: string;
 }
 
@@ -69,6 +71,7 @@ let memoryStore: StorageDataStore = {
   notifications: [...SEED_NOTIFICATIONS],
   feedback: [...SEED_FEEDBACK],
   complaints: [...SEED_COMPLAINTS],
+  claims: [],
   activeUserId: SEED_USERS[3].id, // Default to Customer (Priya Sharma)
 };
 
@@ -112,6 +115,7 @@ export function initializeStorage(): StorageDataStore {
     notifications: [...SEED_NOTIFICATIONS],
     feedback: [...SEED_FEEDBACK],
     complaints: [...SEED_COMPLAINTS],
+    claims: [],
     activeUserId: SEED_USERS[3].id,
   };
 
@@ -154,6 +158,7 @@ export function resetDemoData(): StorageDataStore {
     notifications: [...SEED_NOTIFICATIONS],
     feedback: [...SEED_FEEDBACK],
     complaints: [...SEED_COMPLAINTS],
+    claims: [],
     activeUserId: SEED_USERS[3].id,
   };
 
@@ -170,7 +175,9 @@ export function getStore(): StorageDataStore {
     const data = window.localStorage.getItem(key);
     if (data) {
       try {
-        return JSON.parse(data);
+        const store = JSON.parse(data) as StorageDataStore;
+        if (!store.claims) store.claims = [];
+        return store;
       } catch {
         // fallback
       }

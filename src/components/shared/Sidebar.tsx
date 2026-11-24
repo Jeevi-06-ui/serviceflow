@@ -22,11 +22,12 @@ import {
   PackagePlus,
   HelpCircle,
   FileSpreadsheet,
+  LogOut,
 } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { role, user } = useAuth();
+  const { role, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Scoped navigation links per role
@@ -153,6 +154,20 @@ export function Sidebar() {
             );
           })}
         </nav>
+
+        {/* Sign Out Action Button */}
+        <div className="px-3 pb-2">
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              logout();
+            }}
+            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut className="w-4 h-4 text-red-400" />
+            <span>Sign Out</span>
+          </button>
+        </div>
 
         {/* Footer Info & Developer Attributions */}
         <div className="p-4 border-t border-slate-800/80 text-[11px] text-slate-400 bg-slate-950/40">
