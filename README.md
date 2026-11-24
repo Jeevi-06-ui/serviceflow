@@ -88,7 +88,7 @@ npm run build
 # Start local production server
 npm run start
 ```
-Access the application at `http://localhost:3000`.
+Access the application at `http://localhost:3005`.
 
 ---
 

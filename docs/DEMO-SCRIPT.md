@@ -12,7 +12,7 @@
 1. **Welcome & Context:**
    - *"Hello everyone, I am Kishore R, Frontend Development Intern at Jeevix Technologies. Today, I am proud to present ServiceFlow, a smart warranty and after-sales service management platform designed for consumer electronics retailers, dealers, and authorized service centers."*
 2. **Landing Page Overview:**
-   - Open browser at `http://localhost:3000/`.
+   - Open browser at `http://localhost:3005/`.
    - Point out the clean B2B SaaS enterprise aesthetic: warm white canvas (`bg-slate-50`), deep navy sidebar (`bg-slate-900`), and focused teal accents (`#0D9488`).
    - Highlight the **One-Click Demo Launchpad** showing the 4 operational personas: Customer, Service Center, Field Technician, and System Admin.
 
