@@ -1,13 +1,16 @@
 # ServiceFlow — Smart Warranty & After-Sales Service Management System
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://nextjs.org)
+[![Live Demo on Vercel](https://img.shields.io/badge/Vercel-Live%20Demo-black?logo=vercel)](https://serviceflow-chi-khaki.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Jeevi--06--ui%2Fserviceflow-blue?logo=github)](https://github.com/Jeevi-06-ui/serviceflow)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://serviceflow-chi-khaki.vercel.app)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black.svg)](https://nextjs.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com)
-[![Vitest](https://img.shields.io/badge/Tests-13%20Passed-emerald.svg)](https://vitest.dev)
+[![Vitest](https://img.shields.io/badge/Tests-23%20Passed-emerald.svg)](https://vitest.dev)
 
+> **Live Deployment:** [https://serviceflow-chi-khaki.vercel.app](https://serviceflow-chi-khaki.vercel.app)  
+> **GitHub Repository:** [https://github.com/Jeevi-06-ui/serviceflow](https://github.com/Jeevi-06-ui/serviceflow)  
 > **Client:** Jeevix Technologies  
-> **Frontend Developer Intern:** Kishore R  
+> **Frontend Developer Intern:** Kishore R (<kishoreyadhav39@gmail.com>)  
 > **Architecture:** Next.js 14 App Router, TypeScript, Tailwind CSS, Versioned Mock REST Repository  
 
 ---
