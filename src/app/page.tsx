@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useVoiceTour } from '@/context/VoiceTourContext';
+import { VoiceTourLauncherModal } from '@/components/shared/VoiceTourLauncherModal';
 import { UserRole } from '@/types';
 import {
   ShieldCheck,
@@ -17,10 +19,14 @@ import {
   Sparkles,
   Database,
   ExternalLink,
+  Headphones,
+  Play,
 } from 'lucide-react';
 
 export default function LandingPage() {
   const { switchRole } = useAuth();
+  const { startTour } = useVoiceTour();
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const demoRoles: {
     role: UserRole;
@@ -88,6 +94,12 @@ export default function LandingPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowVoiceModal(true)}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors"
+          >
+            <Headphones className="w-3.5 h-3.5 text-teal-400" /> Voice Guide
+          </button>
           <Link
             href="/login"
             className="px-4 py-1.5 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
@@ -118,6 +130,23 @@ export default function LandingPage() {
           A centralized, enterprise-grade after-sales platform for electronics retailers, appliance dealers,
           manufacturers, and service centers. Experience the complete warranty and repair lifecycle across 4 operational roles.
         </p>
+
+        {/* Voice Tour Prominent Hero CTA */}
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => startTour('all')}
+            className="px-5 py-3 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-sm shadow-xl flex items-center gap-2 transition-all transform hover:scale-105"
+          >
+            <Headphones className="w-4 h-4" /> Start Automated Voice Tour (All Roles)
+          </button>
+
+          <button
+            onClick={() => setShowVoiceModal(true)}
+            className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition-colors"
+          >
+            Choose Role-Specific Audio Guide &rarr;
+          </button>
+        </div>
 
         {/* Quick Launchpad Grid */}
         <div id="demo-launchpad" className="pt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
@@ -155,10 +184,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto grid sm:grid-cols-3 gap-6 text-xs text-slate-400">
           <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
             <div className="flex items-center gap-2 text-teal-400 font-bold text-sm">
-              <Database className="w-4 h-4" /> Versioned LocalStorage Store
+              <Headphones className="w-4 h-4" /> AI Audio Voice Guide
             </div>
             <p className="leading-relaxed">
-              Pre-seeded with 20 Indian customers, 30 consumer appliances, 4 service hubs, 10 technicians, and 42 tickets covering all 11 workflow states.
+              Automated voice narration with live subtitles and auto-navigation across all 4 portals, explaining system logic in real-time.
             </p>
           </div>
 
@@ -181,6 +210,12 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Voice Tour Launcher Modal */}
+      <VoiceTourLauncherModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+      />
 
       {/* Footer */}
       <footer className="mt-auto py-6 text-center text-xs text-slate-500 border-t border-slate-800">

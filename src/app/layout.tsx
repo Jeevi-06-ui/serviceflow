@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { VoiceTourProvider } from '@/context/VoiceTourContext';
+import { VoiceGuideFloatingDock } from '@/components/shared/VoiceGuideFloatingDock';
 
 export const metadata: Metadata = {
   title: 'ServiceFlow — Smart Warranty & After-Sales Service Management System',
@@ -18,7 +20,12 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="h-full antialiased font-sans text-slate-900 bg-slate-50">
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            <VoiceTourProvider>
+              {children}
+              <VoiceGuideFloatingDock />
+            </VoiceTourProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { UserRole } from '@/types';
 import { Repository } from '@/lib/api/repository';
+import { VoiceTourLauncherModal } from './VoiceTourLauncherModal';
+import { useVoiceTour } from '@/context/VoiceTourContext';
 import {
   Bell,
   RefreshCw,
@@ -15,6 +17,8 @@ import {
   User as UserIcon,
   CheckCircle,
   ExternalLink,
+  Headphones,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,9 +29,12 @@ interface HeaderProps {
 
 export function Header({ title, breadcrumbs }: HeaderProps) {
   const { user, role, switchRole, resetAllDemoData } = useAuth();
+  const { isTourActive } = useVoiceTour();
+
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   // Notifications for current role
   const notifications = Repository.notifications.getAll(role, user.customerId || user.centerId || user.technicianId);
@@ -65,12 +72,26 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
         {title && <h1 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h1>}
       </div>
 
-      {/* Right: Actions, Role Switcher, Notifications, User */}
-      <div className="flex items-center gap-3">
+      {/* Right: Actions, Voice Tour, Role Switcher, Notifications, User */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Voice Guided Tour Trigger Pill */}
+        <button
+          onClick={() => setShowVoiceModal(true)}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
+            isTourActive
+              ? 'bg-teal-600 text-white ring-2 ring-teal-400 animate-pulse'
+              : 'bg-slate-900 text-teal-300 hover:bg-slate-800 border border-slate-800'
+          }`}
+          title="Start automated AI voice-guided tour of ServiceFlow"
+        >
+          <Headphones className="w-3.5 h-3.5 text-teal-400" />
+          <span className="hidden sm:inline">Voice Guide</span>
+        </button>
+
         {/* Reset Demo Data Button */}
         <button
           onClick={() => setShowResetConfirm(true)}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
           title="Reset database to clean deterministic seed data"
         >
           <RefreshCw className="w-3.5 h-3.5" />
@@ -184,6 +205,12 @@ export function Header({ title, breadcrumbs }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Voice Tour Launcher Modal */}
+      <VoiceTourLauncherModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+      />
 
       {/* Confirm Reset Demo Data Modal */}
       {showResetConfirm && (
